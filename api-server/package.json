@@ -1,0 +1,21 @@
+{
+  "name": "api-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^5.1.0",
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.13.2",
+    "morgan": "^1.10.0",
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0"
+  }
+}
