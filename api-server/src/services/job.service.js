@@ -3,6 +3,12 @@ const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const { publishToKafka } = require('./kafka.service');
 
+const JobTypeMap = {
+  compute: 'jobs.compute',
+  file: 'jobs.document',
+  blockchain: 'jobs.blockchain',
+  data: 'jobs.data'
+};
 
 const JobSchema = new mongoose.Schema({
   _id: { 
@@ -30,6 +36,12 @@ const Job = mongoose.model('Job', JobSchema);
 
 exports.createJob = async (req, res) => {
   try {
+    const topic = JobTypeMap[req.body.type];
+    
+    if (!topic) {
+      throw new Error(`Unsupported job type: ${req.body.type}`);
+    }
+
     const job = new Job({
       type: req.body.type,
       payload: req.body.payload,
@@ -38,7 +50,7 @@ exports.createJob = async (req, res) => {
     await job.save();
     logger.info('Job created', { jobId: job._id });
 
-    await publishToKafka('jobs.compute', job);
+    await publishToKafka(topic, job);
     
     res.status(201).json({jobId: job._id});
 

@@ -9,7 +9,10 @@ const kafka = new Kafka({
   brokers: [process.env.KAFKA_BROKER],
 });
 
-const consumer = kafka.consumer({ groupId: 'job-workers' });
+const consumer = kafka.consumer({ 
+  groupId: 'job-workers'
+});
+
 let isRunning = false;
 
 //calculate hash
@@ -29,7 +32,8 @@ async function startConsumer() {
     logger.info('Subscribed to topic: jobs.compute');
 
     await consumer.run({
-      eachMessage: async ({ message }) => {
+      autoCommit: false,
+      eachMessage: async ({ topic, partition, message }) => {
         try {
           const job = JSON.parse(message.value.toString());
           logger.info('Received job', { jobId: job._id });
@@ -43,13 +47,19 @@ async function startConsumer() {
 
           const hash = hashString(job.payload.input || '');
           
-
           await axios.patch(`http://api-server:3000/jobs/${job._id}`, {
             status: 'completed',
             result: { message: 'Success', value: hash },
           });
 
           logger.info('Job completed', { jobId: job._id });
+
+          //commit offset
+          const offsetToCommit = (Number(message.offset) + 1).toString();
+          await consumer.commitOffsets([
+            { topic, partition, offset: offsetToCommit },
+          ]);
+
         } catch (err) {
           logger.error('Error processing message:', err);
         }
