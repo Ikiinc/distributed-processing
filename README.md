@@ -17,8 +17,8 @@ This distributed processing solution has following components
   - Consumer microservice which subscribes to `jobs.compute` topic
   - Computes sha256 hash of the payload input string.
   - This compute processing is just an example, likewise we can extend the worker service to consume from different topics for different job types.
-  - When receiving the job from kafka topic, it calls `api-server` Patch endpoint to update status to `processing`
-  - After compute processing, it calls `api-server` Patch endpoint to update status to `completed` and `result` with computed hash.
+  - When receiving the job from kafka topic, it calls `api-server Patch/` endpoint to update status to `processing`
+  - After compute processing, it calls `api-server Patch/` endpoint to update status to `completed` and `result` with computed hash.
   - Manually commits the offset for fault tolerance, in case `worker-service` crashes it will be reprocessed.
   - `Post /start` starts the consumer service in case it was stopped
   - `Post /stop` stops the consumer service
@@ -82,6 +82,7 @@ api-server: 3000
 worker-service: 4000
 kafka: 9093
 ```
+Note: If `worker-service` fails to join kafka consumer group, its due to kafka delayed start, in this case you can use `POST http://localhost:4000/start` to start the consumer.
 
 To stop the containers
 ```
