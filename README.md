@@ -65,4 +65,14 @@ To stop the containers
 ```
 docker compose down
 ```
+## Run Demo Script
+Note: 
+- Please ensure that all services are running.
+- Sample output `demo-output.log` attached in repo.
+
+```
+npm install axios
+node run-demo.js
+```
+If Demo script output is having job status `queued`, pls check logs and try increasing wait times.
 
