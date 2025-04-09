@@ -42,6 +42,14 @@ async function startConsumer() {
             status: 'processing',
           });
 
+          // Simulate failure for specific job
+          const ageInSeconds = (Date.now() - new Date(job.createdAt)) / 1000;
+
+          if (job.payload?.simulateCrash && ageInSeconds < 3 ) {
+            logger.warn('crash simulation before job completion...');
+            process.exit(1); 
+          }
+
           //2 secs wait simulation
           await new Promise((r) => setTimeout(r, 2000));
 

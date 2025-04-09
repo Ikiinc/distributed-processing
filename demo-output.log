@@ -1,0 +1,75 @@
+-- Distributed Processing System Demo ---
+
+
+
+Pls ensure all services are running..
+
+
+You can follow live logs using another terminal:
+
+docker compose logs -f worker-service
+
+Step 1: Submit first normal job...
+Submitted job: 0a0b4b21-be2b-4181-b94c-1c2b1c394032
+Job status:  {
+  _id: '0a0b4b21-be2b-4181-b94c-1c2b1c394032',
+  type: 'compute',
+  status: 'completed',
+  payload: { input: 'To be hashed first job 1' },
+  createdAt: '2025-04-09T19:16:43.090Z',
+  updatedAt: '2025-04-09T19:16:45.192Z',
+  __v: 0,
+  result: {
+    message: 'Success',
+    value: '6fa576714cfec51217d5223f0fea2310831deb9fb813d88580d9f25eff377ccc'
+  }
+}
+
+Step 2: Submit job that crashes worker...
+Submitted job: fe6527fa-7087-4434-b352-10330fbf2ab8
+Waiting for crash to occur...
+Job status:  {
+  _id: 'fe6527fa-7087-4434-b352-10330fbf2ab8',
+  type: 'compute',
+  status: 'processing',
+  payload: { input: 'To be hashed second job 2', simulateCrash: true },
+  createdAt: '2025-04-09T19:16:46.196Z',
+  updatedAt: '2025-04-09T19:16:46.214Z',
+  __v: 0
+}
+
+Step 3: Restart worker-service to recover and reprocess (wait 30 secs)...
+Running: docker compose restart worker-service
+[+] Restarting 1/1
+ ✔ Container distributed-processing-worker-service-1  Started                                                                     0.2s 
+Job status:  {
+  _id: 'fe6527fa-7087-4434-b352-10330fbf2ab8',
+  type: 'compute',
+  status: 'completed',
+  payload: { input: 'To be hashed second job 2', simulateCrash: true },
+  createdAt: '2025-04-09T19:16:46.196Z',
+  updatedAt: '2025-04-09T19:17:17.349Z',
+  __v: 0,
+  result: {
+    message: 'Success',
+    value: 'ee9e478b5c94efe5ef5c05cdcf5b48a520f7230b3c82e102a5d61b08bcff6da4'
+  }
+}
+
+Step 4: Submit one final job...
+Submitted job: 8fee6422-2fd4-4302-a585-dc7cbd3650eb
+Job status:  {
+  _id: '8fee6422-2fd4-4302-a585-dc7cbd3650eb',
+  type: 'compute',
+  status: 'completed',
+  payload: { input: 'To be hashed final job 3' },
+  createdAt: '2025-04-09T19:17:19.588Z',
+  updatedAt: '2025-04-09T19:17:21.623Z',
+  __v: 0,
+  result: {
+    message: 'Success',
+    value: '20c1abceaa6c6f710b40dc08535c8d09a1547eb1fe9da3e827da31a518bd668b'
+  }
+}
+
+Demo complete
