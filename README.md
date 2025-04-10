@@ -75,6 +75,7 @@ In real world, we define the same as kubernetes services with horizontal scaling
 ## Running the repo
 
 Prerequisite: Docker desktop or Docker compose installed
+#### Start the containers
 ```
 clone the repo
 cd distributed-processing
@@ -89,7 +90,7 @@ kafka: 9093
 ```
 Note: In case `worker-service` fails to join kafka consumer group, its due to kafka delayed start, you can use `POST http://localhost:4000/start` to start the consumer.
 
-To stop the containers
+#### Stop the containers
 ```
 docker compose down
 ```
