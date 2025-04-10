@@ -33,7 +33,7 @@ const JobSchema = new mongoose.Schema({
 
 const Job = mongoose.model('Job', JobSchema);
 
-
+//creates job in mongodb and publishes to kafka topic
 exports.createJob = async (req, res) => {
   try {
     const topic = JobTypeMap[req.body.type];
@@ -60,6 +60,8 @@ exports.createJob = async (req, res) => {
   }
 };
 
+//Updates job status (processing, completed, failed)
+//Updates job result
 exports.updateJobStatus = async (req, res) => {
   try {
     const update = {
@@ -85,6 +87,7 @@ exports.updateJobStatus = async (req, res) => {
   }
 };
 
+//Fetches job details by jobId
 exports.getJobStatus = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);

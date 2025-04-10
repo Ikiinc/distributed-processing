@@ -9,6 +9,7 @@ const kafka = new Kafka({
   brokers: [process.env.KAFKA_BROKER],
 });
 
+//consumer group
 const consumer = kafka.consumer({ 
   groupId: 'job-workers'
 });
@@ -21,6 +22,8 @@ function hashString(text) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
+// starts kafka consumer loop by subscribing to jobs.compute topic
+// we can extend the the consumer by subscribing to other topics as well.
 async function startConsumer() {
   if (isRunning) return;
 
@@ -38,6 +41,7 @@ async function startConsumer() {
           const job = JSON.parse(message.value.toString());
           logger.info('Received job', { jobId: job._id });
 
+          //update job status to processing
           await axios.patch(`http://api-server:3000/jobs/${job._id}`, {
             status: 'processing',
           });
@@ -55,6 +59,7 @@ async function startConsumer() {
 
           const hash = hashString(job.payload.input || '');
           
+          //update job status to completed
           await axios.patch(`http://api-server:3000/jobs/${job._id}`, {
             status: 'completed',
             result: { message: 'Success', value: hash },
@@ -81,6 +86,7 @@ async function startConsumer() {
   }
 }
 
+//stops kafka consumer
 async function stopConsumer() {
   if (!isRunning) return;
   

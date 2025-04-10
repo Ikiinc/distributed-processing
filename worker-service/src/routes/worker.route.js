@@ -4,10 +4,12 @@ const { startConsumer, stopConsumer } = require('../services/consumer.service');
 const winston = require('winston');
 const logger = require('../utils/logger');
 
+//health endpoint
 router.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+//Helper to start kafka consumer
 router.post('/start', async (req, res) => {
 
   try {
@@ -23,6 +25,7 @@ router.post('/start', async (req, res) => {
 
 });
 
+//Helper to stop kafka consumer
 router.post('/stop', async (req, res) => {
   try {
     await stopConsumer();
