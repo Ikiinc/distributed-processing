@@ -4,12 +4,12 @@
 This distributed processing solution has following components
 
 #### API Server 
-  - REST microservice to process the incoming job
+  - REST microservice to process the incoming job and status updates
   - `Post /jobs `
     - Saves the job in mongodb
     - Publishes the job to kafka topic according to type
   - `Get /jobs/:id `
-    - Fetches job details of given id
+    - Fetches job details of given jobid
   - `Patch /jobs/:id `
     - Updates job status and job result  
   
@@ -17,11 +17,11 @@ This distributed processing solution has following components
   - Consumer microservice which subscribes to `jobs.compute` topic
   - Computes sha256 hash of the payload input string.
   - This compute processing is just an example, likewise we can extend the worker service to consume from different topics for different job types.
-  - When receiving the job from kafka topic, it calls `api-server Patch/` endpoint to update status to `processing`
+  - When receiving the job from kafka topic, it calls `api-server Patch/` endpoint to update job status to `processing`
   - After compute processing, it calls `api-server Patch/` endpoint to update status to `completed` and `result` with computed hash.
-  - Manually commits the offset for fault tolerance, in case `worker-service` crashes it will be reprocessed.
-  - `Post /start` starts the consumer service in case it was stopped
-  - `Post /stop` stops the consumer service
+  - Manually commits the offset for fault tolerance, if `worker-service` crashes, job will be reprocessed.
+  - `Post /start` starts the kafka consumer in case it was stopped
+  - `Post /stop` stops the kafka consumer
 
 #### Kafka Job Queue
   - Distributed job queue
@@ -43,7 +43,7 @@ This distributed processing solution has following components
      
 ## Architecture Diagram
 
-- For `decentalized processing` - `worker-service` instances deployed in decentralized worker nodes.
+- For `decentalized processing` - `worker-service` instances deployed in decentralized worker nodes. all other services deployed in k8s network.
 - For `distributed processing`   - All services are connected in a single or multiple peered networks.
    
 ![dist_processing](https://github.com/user-attachments/assets/382e4948-173f-4dc2-bc10-ac44726be838)
@@ -51,17 +51,22 @@ This distributed processing solution has following components
 ## Design Decisions
 In this repo for ease of prototyping, all services are defined in `docker-compose.yaml` file. 
 Using one `kafka` partition and one `worker-service` to demo the system. 
-In real world, we define the same as kubernetes services.
+In real world, we define the same as kubernetes services with horizontal scaling enabled offering the following.
 
 #### Scalability and Fault Tolerance
 - All the services can be defined as kubernetes services to be horizontally scalable.
 - `api-server` is defined as micro service hence we can scale as per demand.
-- `kafka` serves as distributed job queue and we can define the number of partitions and replication factor through env variables, hence any number of consumers we can scale. Also we can post different categories of jobs in different topics. so that as per consumer capacity we can configure to consume from the different topics.
+- `kafka` serves as distributed job queue, its scalable. we can define the number of partitions and replication factor through env variables, hence any number of consumers we can scale. Also we can post different categories of jobs in different topics, so that as per consumer capacity we can configure to consume from the different topics.
 - `worker-service` is defined as kafka consumer micro service hence we can scale as per job load. If any worker node fails, it will not commit the offset and that job will be reprocessed later by another worker node which comes online.
 
 #### Persistence
 - Job details and status tracking is enabled using mongo db. Data will be persisted to enquire about the job details/status.
+- Mongodb also can be defined as replicaset for scalable and fault tolerance requirements. 
 
+#### Distributed Processing
+- All services with multiple instances could be deployed in single or multiple peered networks enabling distributed processing.
+- This architecture offers scalability, fault tolerance features.
+   
 #### Decentralization
 - For decentralized processing, ideally `api-server`, `mongodb`, `kafka` services are placed under a centralized kubernetes network and `worker-service` instances are deployed in decentralized network.
 - `worker-service` nodes should connect to `kafka` and `api-server` over the internet with proper authentication. 
@@ -82,7 +87,7 @@ api-server: 3000
 worker-service: 4000
 kafka: 9093
 ```
-Note: If `worker-service` fails to join kafka consumer group, its due to kafka delayed start, in this case you can use `POST http://localhost:4000/start` to start the consumer.
+Note: In case `worker-service` fails to join kafka consumer group, its due to kafka delayed start, you can use `POST http://localhost:4000/start` to start the consumer.
 
 To stop the containers
 ```
@@ -97,5 +102,5 @@ Note:
 npm install axios
 node run-demo.js
 ```
-If Demo script output is having job status `queued`, pls check logs and try increasing wait times.
+If Demo script output is having job status as `queued`, pls check logs and try increasing wait times.
 
